@@ -61,7 +61,7 @@ export default Ember.Component.extend({
      set(key, percentage) {
        const updatedStart = this.getValueFromPercentage(percentage);
        this.sendAction('rangeChanging', {
-         start: Math.round(updatedStart),
+         start: updatedStart,
          end: get(this, 'end')
        });
        return percentage;
@@ -85,7 +85,7 @@ export default Ember.Component.extend({
        const updatedEnd = this.getValueFromPercentage(percentage);
        this.sendAction('rangeChanging', {
          start: get(this, 'start'),
-         end: Math.round(updatedEnd)
+         end: updatedEnd
        });
        return percentage;
      }
