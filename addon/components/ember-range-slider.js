@@ -1,8 +1,9 @@
 /* global Hammer */
 import Ember from 'ember';
 import layout from '../templates/components/ember-range-slider';
+import scaleStrategies from '../utils/scale-strategies';
 
-const { computed, isBlank, run } = Ember;
+const { computed, isBlank, run, get } = Ember;
 const { htmlSafe } = Ember.String;
 
 function constrainToBetween(value, min, max) {
@@ -22,6 +23,9 @@ export default Ember.Component.extend({
   start: null,
   end: null,
 
+  scale: 'linear',
+  scaleStrategies,
+
   /* Set these properties to use another component for the
    * start and/or end slider handles
    */
@@ -40,46 +44,52 @@ export default Ember.Component.extend({
    * setters also invoke the rangeChanging action, which should be used for
    * providing immediate feedback.
    */
-  startPercentage: computed('min', 'max', 'start', {
-    get() {
-      let min = this.get('min');
-      let max = this.get('max');
-      let start = this.get('start');
-      if (isBlank(start)) {
-        start = min;
-      }
-      start = constrainToBetween(start, min, max);
-      return (start - min) / (max - min) * 100;
-    },
-    set(key, value) {
-      let updatedStart = this.getValueFromPercentage(value);
-      this.sendAction('rangeChanging', {
-        start: updatedStart,
-        end: this.get('end')
-      });
-      return value;
-    }
-  }),
-  endPercentage: computed('min', 'max', 'end', {
-    get() {
-      let min = this.get('min');
-      let max = this.get('max');
-      let end = this.get('end');
-      if (isBlank(end)) {
-        end = max;
-      }
-      end = constrainToBetween(end, min, max);
-      return (end - min) / (max - min) * 100;
-    },
-    set(key, value) {
-      let updatedEnd = this.getValueFromPercentage(value);
-      this.sendAction('rangeChanging', {
-        start: this.get('start'),
-        end: updatedEnd
-      });
-      return value;
-    }
-  }),
+   startPercentage: computed('min', 'max', 'start', {
+     get() {
+       const scale = get(this, 'scale');
+       const strategy = get(this, 'scaleStrategies')[scale];
+
+       const min = get(this, 'min');
+       const max = get(this, 'max');
+       const start = get(this, 'start');
+       const value = Ember.isBlank(start) ? min : start;
+
+       const percentage = strategy.getPercentage.call(this, min, max, value);
+
+       return constrainToBetween(percentage, 0, 100);
+     },
+     set(key, percentage) {
+       const updatedStart = this.getValueFromPercentage(percentage);
+       this.sendAction('rangeChanging', {
+         start: Math.round(updatedStart),
+         end: get(this, 'end')
+       });
+       return percentage;
+     }
+   }),
+   endPercentage: computed('min', 'max', 'end', {
+     get() {
+       const scale = get(this, 'scale');
+       const strategy = get(this, 'scaleStrategies')[scale];
+
+       const min = get(this, 'min');
+       const max = get(this, 'max');
+       const end = get(this, 'end');
+       const value = Ember.isBlank(end) ? max : end;
+
+       const percentage = strategy.getPercentage.call(this, min, max, value);
+
+       return constrainToBetween(percentage, 0, 100);
+     },
+     set(key, percentage) {
+       const updatedEnd = this.getValueFromPercentage(percentage);
+       this.sendAction('rangeChanging', {
+         start: get(this, 'start'),
+         end: Math.round(updatedEnd)
+       });
+       return percentage;
+     }
+   }),
 
   /* These three CPs are used for dynamic binding in the handlebars template.
    */
@@ -162,10 +172,21 @@ export default Ember.Component.extend({
   /* Convert from percentage position to the numeric value in
    * terms of the passed in range min and max.
    */
+
   getValueFromPercentage(percentage) {
-    let min = this.get('min');
-    let max = this.get('max');
-    return (max - min) * (percentage / 100) + min;
+    const min = get(this, 'min');
+    const max = get(this, 'max');
+
+    const magnettedPercentage = Math.round(percentage);
+    if (magnettedPercentage === 0) {
+      return min;
+    } else if (magnettedPercentage === 100) {
+      return max;
+    } else {
+      const scale = get(this, 'scale');
+      const strategy = get(this, 'scaleStrategies')[scale];
+      return Math.round(strategy.getValue.call(this, min, max, percentage));
+    }
   },
 
   /* press events precede pan events, so we can use this to keep track of
