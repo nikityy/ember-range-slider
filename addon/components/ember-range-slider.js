@@ -31,11 +31,21 @@ export default Ember.Component.extend({
    */
   forceValueObtaining: false,
 
+  isDisabled: false,
+
   baseClassName: 'EmberRangeSlider-base',
   activeRegionClassName: 'EmberRangeSlider-active',
   handleClassName: 'EmberRangeSlider-handle',
   startHandleClassName: 'EmberRangeSlider-handle--start',
   endHandleClassName: 'EmberRangeSlider-handle--end',
+
+  startHandleFullClassName: computed('handleClassName', 'startHandleClassName', function() {
+    return `${this.get('handleClassName')} ${this.get('startHandleClassName')}`;
+  }),
+
+  endHandleFullClassName: computed('handleClassName', 'endHandleClassName', function() {
+    return `${this.get('handleClassName')} ${this.get('endHandleClassName')}`;
+  }),
 
   /* Set these properties to use another component for the
    * start and/or end slider handles
