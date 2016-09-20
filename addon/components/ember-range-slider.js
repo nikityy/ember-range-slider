@@ -31,6 +31,7 @@ export default Ember.Component.extend({
    */
   forceValueObtaining: false,
 
+  onlyIntegers: true,
   isDisabled: false,
 
   baseClassName: 'EmberRangeSlider-base',
@@ -197,6 +198,7 @@ export default Ember.Component.extend({
   getValueFromPercentage(percentage) {
     const min = get(this, 'min');
     const max = get(this, 'max');
+    const onlyIntegers = get(this, 'onlyIntegers');
 
     const magnettedPercentage = Math.round(percentage);
     if (magnettedPercentage === 0) {
@@ -206,7 +208,8 @@ export default Ember.Component.extend({
     } else {
       const scale = get(this, 'scale');
       const strategy = get(this, 'scaleStrategies')[scale];
-      return Math.round(strategy.getValue.call(this, min, max, percentage));
+      const value = strategy.getValue.call(this, min, max, percentage);
+      return (onlyIntegers) ? Math.round(value) : value;
     }
   },
 
