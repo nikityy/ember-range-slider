@@ -26,6 +26,11 @@ export default Ember.Component.extend({
   scale: 'linear',
   scaleStrategies,
 
+  /**
+   *  If true, the second value will be parsed even if selected only one.
+   */
+  forceValueObtaining: false,
+
   /* Set these properties to use another component for the
    * start and/or end slider handles
    */
@@ -267,10 +272,12 @@ export default Ember.Component.extend({
   },
 
   sendRangeChanged() {
-    this.sendAction('rangeChanged', {
-      start: this.getValueFromPercentage(this.get('startPercentage')),
-      end: this.getValueFromPercentage(this.get('endPercentage'))
-    });
+    let startPercentage = this.get('startPercentage');
+    let endPercentage = this.get('endPercentage');
+    let forceValueObtaining = this.get('forceValueObtaining');
+    let start = (startPercentage || forceValueObtaining) ? this.getValueFromPercentage(startPercentage) : startPercentage;
+    let end = (endPercentage || forceValueObtaining) ? this.getValueFromPercentage(endPercentage) : endPercentage;
+    this.sendAction('rangeChanged', { start, end });
   },
 
   startSliding() {
