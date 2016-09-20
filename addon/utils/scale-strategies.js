@@ -48,8 +48,8 @@ const scaleStrategies = {
     },
 
     getValue(_min, _max, percentage) {
-      const max = max || 1;
-      const min = min || 1;
+      const max = _max || 1;
+      const min = _min || 1;
 
       if (min >= 0 && max >= 0) {
         const range  = log10(max / min);
