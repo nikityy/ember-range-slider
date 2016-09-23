@@ -294,8 +294,8 @@ export default Ember.Component.extend({
     let startPercentage = this.get('startPercentage');
     let endPercentage = this.get('endPercentage');
     let forceValueObtaining = this.get('forceValueObtaining');
-    let start = (startPercentage || forceValueObtaining) ? this.getValueFromPercentage(startPercentage) : startPercentage;
-    let end = (endPercentage || forceValueObtaining) ? this.getValueFromPercentage(endPercentage) : endPercentage;
+    let start = (startPercentage || forceValueObtaining) ? this.getValueFromPercentage(startPercentage) : null;
+    let end = ((100 - endPercentage) || forceValueObtaining) ? this.getValueFromPercentage(endPercentage) : null;
     this.sendAction('rangeChanged', { start, end });
   },
 
